@@ -126,10 +126,7 @@ def reset_content():
             "📝 <a href='https://todapay.com/blog'>Blog</a>"
         ),
         "hotline": (
-            "<b>📞 Hot-line</b>\n\n"
-            "💼 Sales contact: @BDTodaArt\n\n"
-            "🧩 We offer a list of solutions with no setup fees.\n"
-            "(Please contact us directly for more details.)"
+            '💳 Choose your region to see available payment methods:'
         )
     }
 

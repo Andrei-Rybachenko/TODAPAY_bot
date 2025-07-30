@@ -12,6 +12,9 @@ import datetime
 
 from db import get_content
 
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
+
 
 router = Router()
 
@@ -83,14 +86,26 @@ async def handle_join_team(callback: CallbackQuery):
 
 @router.callback_query(F.data == "send_resume")
 async def start_resume(callback: CallbackQuery, state: FSMContext):
-    await callback.message.edit_text("📧 Please enter your email address:")
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="🔙 Back to menu", callback_data="back_to_menu")]
+        ]
+    )
+
+    await callback.message.edit_text("📧 Please enter your email address:", reply_markup=keyboard)
     await state.set_state(ResumeForm.waiting_for_email)
 
 
 @router.message(ResumeForm.waiting_for_email)
 async def get_email(message: Message, state: FSMContext):
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="🔙 Back to menu", callback_data="back_to_menu")]
+        ]
+    )
+
     await state.update_data(email=message.text)
-    await message.answer("💬 Now enter a short message or resume summary:")
+    await message.answer("💬 Now enter a short message or resume summary:", reply_markup=keyboard)
     await state.set_state(ResumeForm.waiting_for_message)
 
 
@@ -142,4 +157,45 @@ async def handle_hotline(callback: CallbackQuery):
 
 def register_main_menu(dp):
     dp.include_router(router)
+
+
+@router.message(F.text == "📞 Hot-line")
+async def hotline_handler(message: Message):
+    text = get_content("hotline")  # "💳 Choose your region to see available payment methods:"
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="🇪🇺 Europe", callback_data="hotline_europe")],
+        [InlineKeyboardButton(text="🇬🇧 UK", callback_data="hotline_uk")],
+        [InlineKeyboardButton(text="🇺🇸 North America", callback_data="hotline_na")],
+        [InlineKeyboardButton(text="🌏 Asia-Pacific", callback_data="hotline_apac")],
+        [InlineKeyboardButton(text="🇨🇭 Switzerland", callback_data="hotline_ch")],
+        [InlineKeyboardButton(text="🌍 CIS & East Europe", callback_data="hotline_cis")],
+        [InlineKeyboardButton(text="🇹🇷 Turkey", callback_data="hotline_tr")],
+        [InlineKeyboardButton(text="🌍 Africa", callback_data="hotline_africa")],
+        [InlineKeyboardButton(text="🇦🇪 Middle East", callback_data="hotline_me")],
+        [InlineKeyboardButton(text="🌐 International", callback_data="hotline_intl")],
+    ])
+    await message.answer(text, reply_markup=keyboard)
+
+
+@router.callback_query(F.data == "hotline_europe")
+async def europe_methods(callback: CallbackQuery):
+    await callback.message.edit_text(
+        "<b>🇪🇺 Europe Payment Methods:</b>\n"
+        "- Visa/MC FTD EUR Worldwide\n"
+        "- Open Banking Europe EUR\n"
+        "- EPS – EUR\n"
+        "- Blik – PLN\n"
+        "- iDeal – EUR\n"
+        "- ...",
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="🔙 Back", callback_data="back_to_hotline")]
+        ])
+    )
+
+
+@router.callback_query(F.data == "back_to_hotline")
+async def back_to_hotline(callback: CallbackQuery):
+    await hotline_handler(callback.message)
+
+
 
